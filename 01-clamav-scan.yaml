@@ -1,0 +1,20 @@
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: clamav-poc
+spec:
+  params:
+    - name: gitRepo
+      description: Git repository to test
+      default: https://github.com/redhat-appstudio/hacbs-test.git
+  steps:
+    - name: clone-git-repo
+      image: quay.io/jsztuka/getgit:v1
+      script: "git clone $(params.gitRepo) /tekton/home/hacbs-test"
+    - name: run-freshclam-at-first
+      image: quay.io/jsztuka/clam:v2
+      script: |
+        #!/usr/bin/env bash
+        clamscan /tekton/home/hacbs-test -r --log /tekton/home/clamscan-result.log 
