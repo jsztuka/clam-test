@@ -13,8 +13,8 @@ spec:
     - name: clone-git-repo
       image: quay.io/jsztuka/getgit:v1
       script: "git clone $(params.gitRepo) /tekton/home/hacbs-test"
-    - name: run-freshclam-at-first
+    - name: run-clamscan
       image: quay.io/jsztuka/clam:v2
       script: |
         #!/usr/bin/env bash
-        clamscan /tekton/home/hacbs-test -r --log /tekton/home/clamscan-result.log 
+        clamscan /tekton/home/hacbs-test -r > | tee /tekton/home/clamscan-result.log 
