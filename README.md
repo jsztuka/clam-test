@@ -1,7 +1,7 @@
 # clam-test
 This repo is only for POC work.
 Example output:
-
+```
 [clone-git-repo] Cloning into '/tekton/home/hacbs-test'...
 
 [run-freshclam-at-first] /tekton/home/hacbs-test/.git/description: OK
@@ -68,6 +68,6 @@ Example output:
 [run-freshclam-at-first] Time: 26.566 sec (0 m 26 s)
 [run-freshclam-at-first] Start Date: 2022:05:10 11:57:28
 [run-freshclam-at-first] End Date:   2022:05:10 11:57:54
-
+```
 
 The clone-git step won't be there in production, it is being clonned as part of a pipeline.
