@@ -17,4 +17,4 @@ spec:
       image: quay.io/jsztuka/clam:v2
       script: |
         #!/usr/bin/env bash
-        clamscan /tekton/home/hacbs-test -r > | tee /tekton/home/clamscan-result.log 
+        clamscan /tekton/home/hacbs-test -r | tee /tekton/home/clamscan-result.log 
