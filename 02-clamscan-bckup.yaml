@@ -1,0 +1,39 @@
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: clamav-poc
+spec:
+  params:
+    - name: gitRepo
+      description: Git repository to test
+      default: https://github.com/redhat-appstudio/hacbs-test.git
+  steps:
+    - name: clone-git-repo
+      image: quay.io/jsztuka/getgit:v1
+      script: "git clone $(params.gitRepo) /tekton/home/hacbs-test"
+    - name: run-clamscan
+      image: quay.io/jsztuka/worker:v1
+      script: |
+        #!/usr/bin/env bash
+        cp -r /tmp/clamdb/* /var/lib/clamav
+        clamscan /tekton/home/hacbs-test -r | tee /tekton/home/clamscan-result.log 
+      volumeMounts:
+        - mountPath: /tmp/clamdb
+          name: dbfolder
+  sidecars:
+    - image: quay.io/jsztuka/clam:v3
+      name: database
+      script: |
+        #!/usr/bin/env bash
+        cp -r /var/lib/clamav/* /tmp/clamdb
+      volumeMounts:
+        - mountPath: /tmp/clamdb
+          name: dbfolder
+  volumes:
+    - name: dbfolder
+      emptydir: {}
+
+# change source code scan to compiled code scan
+# use workspaces instead of volumemounts
