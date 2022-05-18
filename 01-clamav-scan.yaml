@@ -16,9 +16,8 @@ spec:
         cp -r /tmp/clamdb/* /var/lib/clamav
         mkdir -p /tmp/extracted-image && cd /tmp/extracted-image
         oc image extract '$(params.image-digest)'
-        clamscan /tmp/extracted-image -r | tee /tekton/home/clamscan-result.log
-        echo "Scan was executed on version: $(clamscan --version)" >> /tekton/home/clamscan-result.log
-        cat /tekton/home/clamscan-result.log
+        clamscan /tmp/extracted-image -ri --max-scansize=250M | tee /tekton/home/clamscan-result.log
+        echo "Scan was executed on version: $(clamscan --version)" | tee -a /tekton/home/clamscan-result.log
       volumeMounts:
         - mountPath: /tmp/clamdb
           name: dbfolder
