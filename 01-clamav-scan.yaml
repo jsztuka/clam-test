@@ -33,6 +33,3 @@ spec:
   volumes:
     - name: dbfolder
       emptydir: {}
-
-# change source code scan to compiled code scan - check
-# use workspaces instead of volumemounts - not within task
