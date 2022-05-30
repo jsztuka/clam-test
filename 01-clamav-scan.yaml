@@ -11,18 +11,58 @@ spec:
       default: quay.io/cvpops/test-index@sha256:50154de7c88e9243afd3dfc767d4db83ff5583786405c35078746f95bb50dea9
   steps:
     - name: extract-and-scan-image
-      image: quay.io/jsztuka/worker:v2
+      image: quay.io/jsztuka/worker:hac
       script: |
         cp -r /tmp/clamdb/* /var/lib/clamav
         mkdir -p /tmp/extracted-image && cd /tmp/extracted-image
         oc image extract '$(params.image-digest)'
         clamscan /tmp/extracted-image -ri --max-scansize=250M | tee /tekton/home/clamscan-result.log
-        echo "Scan was executed on version: $(clamscan --version)" | tee -a /tekton/home/clamscan-result.log
+        echo "Executed-on: Scan was executed on version - $(clamscan --version)" | tee -a /tekton/home/clamscan-result.log
       volumeMounts:
         - mountPath: /tmp/clamdb
           name: dbfolder
+    - name: modify-clam-output-to-json
+      image: python
+      script: |
+        #!/usr/bin/env python
+        import json
+
+        with open("/tekton/home/clamscan-result.log", "r") as file:
+            clam_result_str = file.read()
+
+        def clam_result_str_to_json(clam_result_str):
+
+            clam_result_list = clam_result_str.split("\n")
+            clam_result_list.remove('')
+
+            results_marker = \
+                clam_result_list.index("----------- SCAN SUMMARY -----------")
+
+            hit_list = clam_result_list[:results_marker]
+            summary_list = clam_result_list[(results_marker + 1):]
+
+            r_dict = { "hits": hit_list }
+            for item in summary_list:
+                # in case of blank lines
+                if not item:
+                    continue
+                split_index = [c == ':' for c in item].index(True)
+                key = item[:split_index].lower()
+                key = key.replace(" ", "_")
+                value = item[(split_index + 1):].strip(" ")
+                r_dict[key] = value
+            print(json.dumps(r_dict))
+            with open('/tekton/home/clamscan-result.json', 'w') as f:
+              print(json.dumps(r_dict), file=f)
+
+        def main():
+            clam_result_str_to_json(clam_result_str)
+
+        if __name__ == "__main__":
+            main()
+
   sidecars:
-    - image: quay.io/jsztuka/clam:v3
+    - image: quay.io/redhat-appstudio/clamav-db:latest
       name: database
       script: |
         #!/usr/bin/env bash
